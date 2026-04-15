@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - FortunaAdiuvat</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -18,30 +14,17 @@
             align-items: center;
             justify-content: center;
         }
-        .login-container {
-            width: 100%;
-            max-width: 400px;
-            padding: 20px;
-        }
+        .login-container { width: 100%; max-width: 400px; padding: 20px; }
         .login-card {
             background: white;
             padding: 2rem;
             border-radius: 12px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
-        .login-card h1 {
-            text-align: center;
-            margin-bottom: 2rem;
-            color: #333;
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: bold;
-        }
+        .login-card h1 { text-align: center; margin-bottom: 0.5rem; color: #333; }
+        .login-card h3 { text-align: center; color: #666; margin-bottom: 2rem; font-weight: normal; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
         .form-group input {
             width: 100%;
             padding: 10px;
@@ -60,65 +43,131 @@
             cursor: pointer;
             margin-top: 1rem;
         }
-        .error-message {
-            color: #ff4757;
-            text-align: center;
-            margin-top: 1rem;
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
+        .error-message { color: #ff4757; text-align: center; margin-top: 1rem; font-size: 14px; }
+        .info-message { color: #667eea; text-align: center; margin-top: 1rem; font-size: 12px; }
     </style>
 </head>
 <body>
     <div class="login-container">
         <div class="login-card">
             <h1>🔐 Admin Panel</h1>
-            <h3 style="text-align:center; color:#666; margin-bottom:1rem;">FortunaAdiuvat</h3>
+            <h3>FortunaAdiuvat</h3>
             <form id="loginForm">
                 <div class="form-group">
                     <label>Username</label>
-                    <input type="text" id="username" required placeholder="Masukkan username">
+                    <input type="text" id="username" required placeholder="Masukkan username" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label>Password</label>
                     <input type="password" id="password" required placeholder="Masukkan password">
                 </div>
-                <button type="submit" class="btn-login">Login</button>
+                <button type="submit" class="btn-login" id="loginBtn">Login</button>
                 <div id="loginError" class="error-message"></div>
+                <div id="loginInfo" class="info-message"></div>
             </form>
         </div>
     </div>
 
     <script>
-        const API_URL = 'https://payment-worker.xxxx.workers.dev'; // GANTI DENGAN URL WORKER ANDA
+        // Gunakan URL worker yang sudah di-test dengan curl
+        const API_URL = 'https://payment-worker.namecheapel.workers.dev';
         
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+        // Tambahkan event listener saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            const loginBtn = document.getElementById('loginBtn');
             const errorDiv = document.getElementById('loginError');
+            const infoDiv = document.getElementById('loginInfo');
             
-            errorDiv.textContent = '';
+            // Tampilkan info bahwa API sudah siap
+            infoDiv.innerHTML = '✅ Backend API: ' + API_URL;
             
-            try {
-                const response = await fetch(`${API_URL}/api/admin/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
                 
-                const result = await response.json();
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
                 
-                if (result.success) {
-                    localStorage.setItem('adminToken', result.token);
-                    localStorage.setItem('adminUsername', result.admin.username);
-                    window.location.href = 'dashboard.html';
-                } else {
-                    errorDiv.textContent = result.error || 'Login gagal!';
+                // Reset pesan error
+                errorDiv.textContent = '';
+                infoDiv.innerHTML = '⏳ Mengirim request ke server...';
+                loginBtn.disabled = true;
+                loginBtn.textContent = 'Loading...';
+                
+                // Validasi sederhana
+                if (!username || !password) {
+                    errorDiv.textContent = 'Username dan password harus diisi!';
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Login';
+                    infoDiv.innerHTML = '✅ Backend API: ' + API_URL;
+                    return;
                 }
-            } catch (error) {
-                errorDiv.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
-            }
+                
+                try {
+                    console.log('Mencoba login ke:', `${API_URL}/api/admin/login`);
+                    console.log('Username:', username);
+                    
+                    const response = await fetch(`${API_URL}/api/admin/login`, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    console.log('Response status:', response.status);
+                    
+                    // Baca response sebagai text dulu untuk debugging
+                    const responseText = await response.text();
+                    console.log('Response text:', responseText);
+                    
+                    let result;
+                    try {
+                        result = JSON.parse(responseText);
+                    } catch (e) {
+                        console.error('Gagal parse JSON:', e);
+                        throw new Error('Response dari server tidak valid');
+                    }
+                    
+                    if (response.ok && result.success) {
+                        // Simpan token dan username
+                        localStorage.setItem('adminToken', result.token);
+                        localStorage.setItem('adminUsername', result.admin.username);
+                        
+                        infoDiv.innerHTML = '✅ Login berhasil! Mengalihkan...';
+                        
+                        // Redirect ke dashboard
+                        setTimeout(() => {
+                            window.location.href = 'dashboard.html';
+                        }, 500);
+                    } else {
+                        errorDiv.textContent = result.error || 'Login gagal! Periksa username dan password.';
+                        infoDiv.innerHTML = '✅ Backend API: ' + API_URL;
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = 'Login';
+                    }
+                    
+                } catch (error) {
+                    console.error('Error detail:', error);
+                    errorDiv.textContent = 'Terjadi kesalahan: ' + error.message;
+                    infoDiv.innerHTML = '⚠️ Gagal koneksi ke ' + API_URL;
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Login';
+                }
+            });
         });
+        
+        // Cek apakah sudah login sebelumnya
+        const token = localStorage.getItem('adminToken');
+        if (token && window.location.pathname.includes('index.html')) {
+            // Coba verifikasi token dengan panggilan sederhana
+            window.location.href = 'dashboard.html';
+        }
     </script>
 </body>
 </html>
