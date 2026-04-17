@@ -1,366 +1,263 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - FortunaAdiuvat</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-        }
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-        }
-        .sidebar {
-            width: 250px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem 1rem;
-        }
-        .sidebar h2 {
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-        .sidebar nav a {
-            display: block;
-            padding: 12px 20px;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            cursor: pointer;
-        }
-        .sidebar nav a:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        .admin-content {
-            flex: 1;
-            padding: 2rem;
-        }
-        .section {
-            display: none;
-        }
-        .section.active {
-            display: block;
-        }
-        .filters {
-            display: flex;
-            gap: 1rem;
-            margin: 1rem 0;
-            flex-wrap: wrap;
-        }
-        .filters input, .filters select {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-        .filters input {
-            flex: 1;
-            min-width: 200px;
-        }
-        .stats-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin: 1rem 0;
-        }
-        .stat-card {
-            background: white;
-            padding: 1rem;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .stat-card h3 {
-            font-size: 0.9rem;
-            color: #666;
-        }
-        .stat-card p {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #667eea;
-        }
-        .table-container {
-            background: white;
-            border-radius: 12px;
-            overflow-x: auto;
-            margin-top: 1rem;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        th {
-            background: #f8f9fa;
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-        }
-        .status-pending { background: #ffeaa7; color: #d63031; }
-        .status-processing { background: #74b9ff; color: #0984e3; }
-        .status-completed { background: #55efc4; color: #00b894; }
-        .status-cancelled { background: #ff7675; color: #d63031; }
-        .btn-edit, .btn-delete {
-            padding: 4px 12px;
-            margin: 0 4px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .btn-edit {
-            background: #0984e3;
-            color: white;
-        }
-        .btn-delete {
-            background: #ff4757;
-            color: white;
-        }
-        .admin-user {
-            display: block;
-            text-align: center;
-            padding: 10px;
-            margin-bottom: 1rem;
-            background: rgba(255,255,255,0.2);
-            border-radius: 8px;
-        }
-        @media (max-width: 768px) {
-            .admin-container {
-                flex-direction: column;
-            }
-            .sidebar {
-                width: 100%;
-            }
-            .filters {
-                flex-direction: column;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard Premium</title>
+
+<style>
+body { font-family: Arial; background:#f5f5f5; margin:0 }
+
+/* HEADER */
+header {
+  background:#2d3436;
+  color:#fff;
+  padding:15px;
+  display:flex;
+  justify-content:space-between;
+}
+
+/* CONTAINER */
+.container {
+  padding:20px;
+}
+
+/* CARD */
+.card {
+  background:#fff;
+  padding:20px;
+  border-radius:10px;
+  margin-bottom:20px;
+}
+
+/* TABLE */
+table {
+  width:100%;
+  border-collapse:collapse;
+}
+
+th, td {
+  padding:10px;
+  border-bottom:1px solid #ddd;
+}
+
+th {
+  background:#eee;
+}
+
+/* BUTTON */
+.btn {
+  padding:6px 12px;
+  border:none;
+  cursor:pointer;
+  border-radius:5px;
+}
+
+.btn-success { background:#00b894; color:#fff }
+.btn-danger { background:#d63031; color:#fff }
+
+/* STATUS */
+.pending { background:#fff3cd }
+.completed { background:#d4edda }
+.cancelled { background:#f8d7da }
+
+</style>
 </head>
+
 <body>
-    <div class="admin-container">
-        <aside class="sidebar">
-            <h2>📊 Admin Panel</h2>
-            <div class="admin-user" id="adminUser">👤 Loading...</div>
-            <nav>
-                <a onclick="showSection('transactions')">📋 Transaksi</a>
-                <a onclick="logout()">🚪 Logout</a>
-            </nav>
-        </aside>
-        
-        <main class="admin-content">
-            <div id="transactionsSection" class="section active">
-                <h1>Manajemen Transaksi</h1>
-                
-                <div class="filters">
-                    <input type="text" id="searchInput" placeholder="Cari order ID, nama, email..." onkeyup="loadTransactions()">
-                    <select id="statusFilter" onchange="loadTransactions()">
-                        <option value="ALL">Semua Status</option>
-                        <option value="pending">Pending</option>
-                        <option value="processing">Processing</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-                    <select id="methodFilter" onchange="loadTransactions()">
-                        <option value="ALL">Semua Metode</option>
-                        <option value="bank_transfer">Bank Transfer</option>
-                        <option value="qris">QRIS</option>
-                    </select>
-                </div>
-                
-                <div class="stats-cards">
-                    <div class="stat-card"><h3>Total Transaksi</h3><p id="totalCount">0</p></div>
-                    <div class="stat-card"><h3>Pending</h3><p id="pendingCount">0</p></div>
-                    <div class="stat-card"><h3>Completed</h3><p id="completedCount">0</p></div>
-                </div>
-                
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Tracking</th>
-                                <th>Produk</th>
-                                <th>Pelanggan</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                                <th>Tanggal</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="transactionsBody">
-                            <tr><td colspan="8">Loading...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
-    </div>
 
-    <script>
-    // ✅ FIX URL (INI PALING PENTING)
-    const API_URL = 'https://payment-worker.namecheapel.workers.dev';
+<header>
+  <h2>📊 Dashboard Admin</h2>
+  <button onclick="logout()">Logout</button>
+</header>
 
-    // Auth check
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-        window.location.href = 'index.html';
+<div class="container">
+
+  <!-- INCOMING -->
+  <div class="card">
+    <h2>⚡ Transaksi Masuk (Pending)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Produk</th>
+          <th>Nama</th>
+          <th>Total</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="incomingBody">
+        <tr><td colspan="5">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="card">
+    <h2>📚 Riwayat Transaksi</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Produk</th>
+          <th>Nama</th>
+          <th>Total</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="historyBody">
+        <tr><td colspan="5">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+
+const API_URL = "https://payment-worker.namecheapel.workers.dev";
+
+let lastPending = 0;
+
+// AUTH CHECK
+const token = localStorage.getItem("adminToken");
+if(!token){
+  window.location.href = "index.html";
+}
+
+// FETCH WITH AUTH
+async function fetchAuth(url, options={}){
+  const res = await fetch(url, {
+    ...options,
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":"Bearer "+token
+    }
+  });
+
+  if(res.status === 401){
+    localStorage.removeItem("adminToken");
+    location.href="index.html";
+  }
+
+  return res;
+}
+
+// LOAD DATA
+async function loadTransactions(){
+  try{
+    const res = await fetchAuth(`${API_URL}/api/admin/transactions`);
+    const data = await res.json();
+
+    if(data.success){
+      const all = data.transactions || [];
+
+      const pending = all.filter(x=>x.status==="pending");
+      const history = all.filter(x=>x.status!=="pending");
+
+      renderIncoming(pending);
+      renderHistory(history);
     }
 
-    const username = localStorage.getItem('adminUsername');
-    document.getElementById('adminUser').innerHTML = `👤 ${username || 'Admin'}`;
+  }catch(err){
+    console.error(err);
+  }
+}
 
-    async function fetchWithAuth(url, options = {}) {
-        const token = localStorage.getItem('adminToken');
+// RENDER INCOMING
+function renderIncoming(data){
+  const el = document.getElementById("incomingBody");
 
-        const response = await fetch(url, {
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-                ...options.headers
-            }
-        });
+  // 🔊 AUDIO NOTIF
+  if(data.length > lastPending){
+    new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
+  }
+  lastPending = data.length;
 
-        if (response.status === 401) {
-            localStorage.removeItem('adminToken');
-            window.location.href = 'index.html';
-        }
+  if(!data.length){
+    el.innerHTML = `<tr><td colspan="5">Tidak ada transaksi</td></tr>`;
+    return;
+  }
 
-        return response;
+  el.innerHTML = data.map(tr=>`
+    <tr class="pending">
+      <td>${tr.order_id}</td>
+      <td>${tr.product_name}</td>
+      <td>${tr.customer_name}</td>
+      <td>Rp ${tr.amount.toLocaleString()}</td>
+      <td>
+        <button class="btn btn-success" onclick="approve('${tr.id}')">Paid</button>
+        <button class="btn btn-danger" onclick="reject('${tr.id}')">Unpaid</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// RENDER HISTORY
+function renderHistory(data){
+  const el = document.getElementById("historyBody");
+
+  if(!data.length){
+    el.innerHTML = `<tr><td colspan="5">Belum ada data</td></tr>`;
+    return;
+  }
+
+  el.innerHTML = data.map(tr=>`
+    <tr class="${tr.status}">
+      <td>${tr.order_id}</td>
+      <td>${tr.product_name}</td>
+      <td>${tr.customer_name}</td>
+      <td>Rp ${tr.amount.toLocaleString()}</td>
+      <td>${tr.status}</td>
+    </tr>
+  `).join('');
+}
+
+// APPROVE
+async function approve(id){
+  await updateStatus(id,"completed","paid");
+}
+
+// REJECT
+async function reject(id){
+  await updateStatus(id,"cancelled","unpaid");
+}
+
+// UPDATE STATUS
+async function updateStatus(id,status,payment){
+  try{
+    const res = await fetchAuth(`${API_URL}/api/admin/transactions/${id}/status`,{
+      method:"PUT",
+      body:JSON.stringify({
+        status:status,
+        payment_status:payment
+      })
+    });
+
+    if(res.ok){
+      loadTransactions();
+    }else{
+      alert("Gagal update");
     }
 
-    async function loadTransactions() {
-        const search = document.getElementById('searchInput')?.value || '';
-        const status = document.getElementById('statusFilter')?.value || 'ALL';
+  }catch(err){
+    alert("Server error");
+  }
+}
 
-        try {
-            // ✅ FIX PARAMETER (hapus fund_method)
-            const response = await fetchWithAuth(
-                `${API_URL}/api/admin/transactions?search=${encodeURIComponent(search)}&status=${status}`
-            );
+// AUTO REFRESH
+setInterval(loadTransactions, 5000);
 
-            const data = await response.json();
+// LOAD FIRST
+loadTransactions();
 
-            console.log('DATA TRANSAKSI:', data); // debug
+// LOGOUT
+function logout(){
+  localStorage.removeItem("adminToken");
+  location.href="index.html";
+}
 
-            if (data.success) {
-                displayTransactions(data.transactions);
-                updateStats(data.transactions);
-            } else {
-                console.error(data);
-            }
-
-        } catch (error) {
-            console.error('ERROR LOAD:', error);
-        }
-    }
-
-    function displayTransactions(transactions) {
-        const tbody = document.getElementById('transactionsBody');
-
-        if (!transactions || transactions.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8">Tidak ada transaksi</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = transactions.map(tr => `
-            <tr>
-                <td>${tr.order_id}</td>
-                <td><code>${tr.tracking_code}</code></td>
-                <td>${tr.product_name}</td>
-                <td>
-                    ${tr.customer_name}<br>
-                    <small>${tr.customer_email || ''}</small>
-                </td>
-                <td>Rp ${(tr.amount || 0).toLocaleString('id-ID')}</td>
-                <td>
-                    <select onchange="updateStatus('${tr.id}', this.value)" class="status-badge status-${tr.status}">
-                        <option value="pending" ${tr.status === 'pending' ? 'selected' : ''}>Pending</option>
-                        <option value="processing" ${tr.status === 'processing' ? 'selected' : ''}>Processing</option>
-                        <option value="completed" ${tr.status === 'completed' ? 'selected' : ''}>Completed</option>
-                        <option value="cancelled" ${tr.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-                    </select>
-                </td>
-                <td>${new Date(tr.created_at * 1000).toLocaleString('id-ID')}</td>
-                <td>
-                    <button class="btn-edit" onclick="viewTracking('${tr.tracking_code}')">🔍 Tracking</button>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    function updateStats(transactions) {
-        const total = transactions.length;
-        const pending = transactions.filter(t => t.status === 'pending').length;
-        const completed = transactions.filter(t => t.status === 'completed').length;
-
-        document.getElementById('totalCount').innerText = total;
-        document.getElementById('pendingCount').innerText = pending;
-        document.getElementById('completedCount').innerText = completed;
-    }
-
-    async function updateStatus(id, status) {
-        try {
-            const response = await fetchWithAuth(
-                `${API_URL}/api/admin/transactions/${id}/status`,
-                {
-                    method: 'PUT',
-                    body: JSON.stringify({
-                        status,
-                        payment_status: status === 'completed' ? 'paid' : 'unpaid'
-                    })
-                }
-            );
-
-            if (response.ok) {
-                loadTransactions();
-            } else {
-                alert('Gagal update status');
-            }
-
-        } catch (error) {
-            alert('Error update');
-        }
-    }
-
-    function viewTracking(code) {
-        window.open(`track.html?code=${code}`, '_blank');
-    }
-
-    function showSection(section) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById(section + 'Section').classList.add('active');
-
-        if (section === 'transactions') {
-            loadTransactions();
-        }
-    }
-
-    function logout() {
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminUsername');
-        window.location.href = 'index.html';
-    }
-
-    // 🚀 LOAD AWAL
-    loadTransactions();
 </script>
+
 </body>
 </html>
