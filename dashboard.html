@@ -192,14 +192,18 @@ async function fetchAuth(url, options={}){
 
 function formatDate(dateStr){
   if(!dateStr) return '-';
+
   const d = new Date(dateStr);
-  return d.toLocaleString('id-ID',{
-    day:'2-digit',
-    month:'2-digit',
-    year:'numeric',
-    hour:'2-digit',
-    minute:'2-digit'
-  });
+
+  return new Intl.DateTimeFormat('id-ID', {
+    timeZone: 'Asia/Jakarta',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }).format(d);
 }
 
 // LOAD
@@ -241,11 +245,34 @@ function renderStats(all){
 function renderIncoming(data){
   const el = document.getElementById("incomingBody");
 
-  if(data.length > lastPending){
-    new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
-  }
-  lastPending = data.length;
+  // Ambil ID transaksi sekarang
+  const currentIds = new Set(data.map(tr => tr.id));
 
+  // Cek apakah ada ID baru (yang belum pernah ada)
+  let hasNew = false;
+  let firstLoad = true;
+
+  data.forEach(tr => {
+    if(!knownPendingIds.has(tr.id)){
+      newTransactions.push(tr);
+    }
+  });
+
+  // 🔊 Bunyi hanya kalau ada transaksi BARU
+  if(newTransactions.length > 0 && !firstLoad){
+    new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
+
+    newTransactions.forEach(tr=>{
+      showNotif(
+        "🛒 Transaksi Baru",
+        `${tr.customer_name} beli ${tr.product_name} (Rp ${Number(tr.amount).toLocaleString()})`
+      );
+    });
+  }
+firstLoad = false;
+  knownPendingIds = currentIds;
+
+  // render table
   if(!data.length){
     el.innerHTML = `<tr><td colspan="8">Tidak ada transaksi</td></tr>`;
     return;
