@@ -8,14 +8,12 @@
 <style>
 body { font-family: Arial; background:#f5f5f5; margin:0 }
 
-/* HEADER */
 header {
   background:#111827;
   color:#fff;
   padding:15px 20px;
   display:flex;
   justify-content:space-between;
-  align-items:center;
 }
 
 header button {
@@ -27,10 +25,8 @@ header button {
   border-radius:6px;
 }
 
-/* CONTAINER */
 .container { padding:20px }
 
-/* STATS */
 .stats {
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
@@ -49,7 +45,6 @@ header button {
   font-weight:bold;
 }
 
-/* CARD */
 .card {
   background:#fff;
   padding:20px;
@@ -57,7 +52,6 @@ header button {
   margin-bottom:20px;
 }
 
-/* TABLE */
 table {
   width:100%;
   border-collapse:collapse;
@@ -70,7 +64,6 @@ th, td {
 
 th { background:#f1f1f1 }
 
-/* BUTTON */
 .btn {
   padding:6px 10px;
   border:none;
@@ -81,21 +74,14 @@ th { background:#f1f1f1 }
 .btn-success { background:#10b981; color:#fff }
 .btn-danger { background:#ef4444; color:#fff }
 
-/* STATUS */
-.badge {
-  padding:4px 8px;
-  border-radius:6px;
-  font-size:12px;
-}
-
 .pending { background:#fef3c7 }
 .completed { background:#d1fae5 }
 .cancelled { background:#fee2e2 }
 
-/* SEARCH */
-.search input {
+input {
   padding:8px;
   width:250px;
+  margin-bottom:10px;
 }
 </style>
 </head>
@@ -112,7 +98,6 @@ th { background:#f1f1f1 }
 
 <div class="container">
 
-<!-- STATS -->
 <div class="stats">
   <div class="stat-card">
     <h4>Total</h4>
@@ -178,19 +163,16 @@ th { background:#f1f1f1 }
 </div>
 
 <script>
-
 const API_URL = "https://payment-worker.namecheapel.workers.dev";
 let lastPending = 0;
 let pendingData = [];
 let historyData = [];
 
-// AUTH
 const token = localStorage.getItem("adminToken");
 if(!token){
   location.href="index.html";
 }
 
-// FETCH AUTH
 async function fetchAuth(url, options={}){
   const res = await fetch(url,{
     ...options,
@@ -208,21 +190,19 @@ async function fetchAuth(url, options={}){
   return res;
 }
 
-  function formatDate(dateStr){
+function formatDate(dateStr){
   if(!dateStr) return '-';
-
   const d = new Date(dateStr);
-
-  return d.toLocaleString('id-ID', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+  return d.toLocaleString('id-ID',{
+    day:'2-digit',
+    month:'2-digit',
+    year:'numeric',
+    hour:'2-digit',
+    minute:'2-digit'
   });
 }
-  
-// LOAD DATA
+
+// LOAD
 async function loadTransactions(){
   try{
     const res = await fetchAuth(`${API_URL}/api/admin/transactions`);
@@ -252,12 +232,12 @@ function renderStats(all){
 
   let revenue = all
     .filter(x=>x.payment_status==="paid")
-    .reduce((sum,x)=>sum + x.amount,0);
+    .reduce((sum,x)=>sum + Number(x.amount),0);
 
   document.getElementById("revenue").innerText = "Rp "+revenue.toLocaleString();
 }
 
-// RENDER PENDING
+// PENDING
 function renderIncoming(data){
   const el = document.getElementById("incomingBody");
 
@@ -288,31 +268,29 @@ function renderIncoming(data){
   `).join('');
 }
 
-// RENDER HISTORY
+// HISTORY
 function renderHistory(data){
   const el = document.getElementById("historyBody");
 
   if(!data.length){
-    el.innerHTML = `<tr><td colspan="8">Belum ada data</td></tr>`;
+    el.innerHTML = `<tr><td colspan="9">Belum ada data</td></tr>`;
     return;
   }
 
   el.innerHTML = data.map(tr=>`
-  <tr class="pending">
-    <td>${tr.order_id}</td>
-    <td>${formatDate(tr.created_at || tr.order_date)}</td>
-    <td>${tr.product_name}</td>
-    <td>${tr.customer_name}</td>
-    <td>${tr.shipping_address || '-'}</td>
-    <td>${tr.customer_email || '-'}</td>
-    <td>${tr.customer_phone || '-'}</td>
-    <td>Rp ${Number(tr.amount).toLocaleString()}</td>
-    <td>
-      <button class="btn btn-success" onclick="approve('${tr.id}')">Paid</button>
-      <button class="btn btn-danger" onclick="reject('${tr.id}')">Unpaid</button>
-    </td>
-  </tr>
-`).join('');
+    <tr class="${tr.status}">
+      <td>${formatDate(tr.created_at || tr.order_date)}</td>
+      <td>${tr.order_id}</td>
+      <td>${tr.product_name}</td>
+      <td>${tr.customer_name}</td>
+      <td>${tr.shipping_address || '-'}</td>
+      <td>${tr.customer_email || '-'}</td>
+      <td>${tr.customer_phone || '-'}</td>
+      <td>Rp ${Number(tr.amount).toLocaleString()}</td>
+      <td>${tr.payment_status || tr.status}</td>
+    </tr>
+  `).join('');
+}
 
 // FILTER
 function filterPending(){
@@ -351,12 +329,10 @@ function reject(id){ updateStatus(id,"cancelled","unpaid"); }
 setInterval(loadTransactions, 5000);
 loadTransactions();
 
-// LOGOUT
 function logout(){
   localStorage.removeItem("adminToken");
   location.href="index.html";
 }
-
 </script>
 
 </body>
