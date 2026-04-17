@@ -3,24 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard Premium</title>
+<title>ADMIN PANEL</title>
 
 <style>
 body { font-family: Arial; background:#f5f5f5; margin:0 }
 
 /* HEADER */
 header {
-  background:#2d3436;
+  background:#111827;
   color:#fff;
-  padding:15px;
+  padding:15px 20px;
   display:flex;
   justify-content:space-between;
+  align-items:center;
+}
+
+header button {
+  background:#ef4444;
+  border:none;
+  color:#fff;
+  padding:8px 14px;
+  cursor:pointer;
+  border-radius:6px;
 }
 
 /* CONTAINER */
-.container {
-  padding:20px;
+.container { padding:20px }
+
+/* STATS */
+.stats {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:15px;
+  margin-bottom:20px;
 }
+
+.stat-card {
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+  box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+.stat-card h3 { margin:0; font-size:14px; color:#555 }
+.stat-card p { font-size:20px; font-weight:bold }
 
 /* CARD */
 .card {
@@ -38,44 +64,88 @@ table {
 
 th, td {
   padding:10px;
-  border-bottom:1px solid #ddd;
+  border-bottom:1px solid #eee;
 }
 
-th {
-  background:#eee;
-}
+th { background:#f1f1f1 }
 
 /* BUTTON */
 .btn {
-  padding:6px 12px;
+  padding:6px 10px;
   border:none;
   cursor:pointer;
   border-radius:5px;
 }
 
-.btn-success { background:#00b894; color:#fff }
-.btn-danger { background:#d63031; color:#fff }
+.btn-success { background:#10b981; color:#fff }
+.btn-danger { background:#ef4444; color:#fff }
 
 /* STATUS */
-.pending { background:#fff3cd }
-.completed { background:#d4edda }
-.cancelled { background:#f8d7da }
+.badge {
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:12px;
+}
 
+.pending { background:#fef3c7 }
+.completed { background:#d1fae5 }
+.cancelled { background:#fee2e2 }
+
+/* SEARCH */
+.search {
+  margin-bottom:10px;
+}
+.search input {
+  padding:8px;
+  width:250px;
+}
+
+/* REFRESH */
+.refresh {
+  margin-left:10px;
+  cursor:pointer;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-  <h2>📊 Dashboard Admin</h2>
-  <button onclick="logout()">Logout</button>
+  <h2>ADMIN PANEL</h2>
+  <div>
+    <span class="refresh" onclick="loadTransactions()">🔄 Refresh</span>
+    <button onclick="logout()">Logout</button>
+  </div>
 </header>
 
 <div class="container">
 
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat-card">
+      <h3>Total Transaksi</h3>
+      <p id="totalTx">0</p>
+    </div>
+    <div class="stat-card">
+      <h3>Pending</h3>
+      <p id="pendingTx">0</p>
+    </div>
+    <div class="stat-card">
+      <h3>Paid</h3>
+      <p id="paidTx">0</p>
+    </div>
+    <div class="stat-card">
+      <h3>Total Revenue</h3>
+      <p id="revenue">Rp 0</p>
+    </div>
+  </div>
+
   <!-- INCOMING -->
   <div class="card">
-    <h2>⚡ Transaksi Masuk (Pending)</h2>
+    <h2>Transaksi Masuk</h2>
+    <div class="search">
+      <input type="text" id="searchPending" placeholder="Cari transaksi..." onkeyup="filterPending()">
+    </div>
     <table>
       <thead>
         <tr>
@@ -86,15 +156,16 @@ th {
           <th>Aksi</th>
         </tr>
       </thead>
-      <tbody id="incomingBody">
-        <tr><td colspan="5">Loading...</td></tr>
-      </tbody>
+      <tbody id="incomingBody"></tbody>
     </table>
   </div>
 
   <!-- HISTORY -->
   <div class="card">
-    <h2>📚 Riwayat Transaksi</h2>
+    <h2>📚 Riwayat</h2>
+    <div class="search">
+      <input type="text" id="searchHistory" placeholder="Cari history..." onkeyup="filterHistory()">
+    </div>
     <table>
       <thead>
         <tr>
@@ -105,9 +176,7 @@ th {
           <th>Status</th>
         </tr>
       </thead>
-      <tbody id="historyBody">
-        <tr><td colspan="5">Loading...</td></tr>
-      </tbody>
+      <tbody id="historyBody"></tbody>
     </table>
   </div>
 
@@ -118,16 +187,18 @@ th {
 const API_URL = "https://payment-worker.namecheapel.workers.dev";
 
 let lastPending = 0;
+let pendingData = [];
+let historyData = [];
 
-// AUTH CHECK
+// AUTH
 const token = localStorage.getItem("adminToken");
 if(!token){
-  window.location.href = "index.html";
+  location.href="index.html";
 }
 
-// FETCH WITH AUTH
+// FETCH AUTH
 async function fetchAuth(url, options={}){
-  const res = await fetch(url, {
+  const res = await fetch(url,{
     ...options,
     headers:{
       "Content-Type":"application/json",
@@ -135,7 +206,7 @@ async function fetchAuth(url, options={}){
     }
   });
 
-  if(res.status === 401){
+  if(res.status===401){
     localStorage.removeItem("adminToken");
     location.href="index.html";
   }
@@ -143,7 +214,7 @@ async function fetchAuth(url, options={}){
   return res;
 }
 
-// LOAD DATA
+// LOAD
 async function loadTransactions(){
   try{
     const res = await fetchAuth(`${API_URL}/api/admin/transactions`);
@@ -152,11 +223,12 @@ async function loadTransactions(){
     if(data.success){
       const all = data.transactions || [];
 
-      const pending = all.filter(x=>x.status==="pending");
-      const history = all.filter(x=>x.status!=="pending");
+      pendingData = all.filter(x=>x.status==="pending");
+      historyData = all.filter(x=>x.status!=="pending");
 
-      renderIncoming(pending);
-      renderHistory(history);
+      renderStats(all);
+      renderIncoming(pendingData);
+      renderHistory(historyData);
     }
 
   }catch(err){
@@ -164,13 +236,25 @@ async function loadTransactions(){
   }
 }
 
-// RENDER INCOMING
+// STATS
+function renderStats(all){
+  document.getElementById("totalTx").innerText = all.length;
+  document.getElementById("pendingTx").innerText = pendingData.length;
+  document.getElementById("paidTx").innerText = all.filter(x=>x.payment_status==="paid").length;
+
+  let revenue = all
+    .filter(x=>x.payment_status==="paid")
+    .reduce((sum,x)=>sum + x.amount,0);
+
+  document.getElementById("revenue").innerText = "Rp "+revenue.toLocaleString();
+}
+
+// INCOMING
 function renderIncoming(data){
   const el = document.getElementById("incomingBody");
 
-  // 🔊 AUDIO NOTIF
   if(data.length > lastPending){
-    new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
+    new Audio("https://actions.google.com/sounds/v1/alarms/medium_bell_ringing_near.ogg").play();
   }
   lastPending = data.length;
 
@@ -193,7 +277,7 @@ function renderIncoming(data){
   `).join('');
 }
 
-// RENDER HISTORY
+// HISTORY
 function renderHistory(data){
   const el = document.getElementById("historyBody");
 
@@ -208,47 +292,46 @@ function renderHistory(data){
       <td>${tr.product_name}</td>
       <td>${tr.customer_name}</td>
       <td>Rp ${tr.amount.toLocaleString()}</td>
-      <td>${tr.status}</td>
+      <td><span class="badge">${tr.payment_status}</span></td>
     </tr>
   `).join('');
 }
 
-// APPROVE
-async function approve(id){
-  await updateStatus(id,"completed","paid");
+// FILTER
+function filterPending(){
+  const q = document.getElementById("searchPending").value.toLowerCase();
+  renderIncoming(pendingData.filter(x =>
+    x.product_name.toLowerCase().includes(q) ||
+    x.customer_name.toLowerCase().includes(q)
+  ));
 }
 
-// REJECT
-async function reject(id){
-  await updateStatus(id,"cancelled","unpaid");
+function filterHistory(){
+  const q = document.getElementById("searchHistory").value.toLowerCase();
+  renderHistory(historyData.filter(x =>
+    x.product_name.toLowerCase().includes(q) ||
+    x.customer_name.toLowerCase().includes(q)
+  ));
 }
 
 // UPDATE STATUS
 async function updateStatus(id,status,payment){
   try{
-    const res = await fetchAuth(`${API_URL}/api/admin/transactions/${id}/status`,{
+    await fetchAuth(`${API_URL}/api/admin/transactions/${id}/status`,{
       method:"PUT",
-      body:JSON.stringify({
-        status:status,
-        payment_status:payment
-      })
+      body:JSON.stringify({status,payment_status:payment})
     });
-
-    if(res.ok){
-      loadTransactions();
-    }else{
-      alert("Gagal update");
-    }
-
-  }catch(err){
+    loadTransactions();
+  }catch{
     alert("Server error");
   }
 }
 
+function approve(id){ updateStatus(id,"completed","paid"); }
+function reject(id){ updateStatus(id,"cancelled","unpaid"); }
+
 // AUTO REFRESH
 setInterval(loadTransactions, 5000);
-
-// LOAD FIRST
 loadTransactions();
 
 // LOGOUT
