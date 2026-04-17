@@ -42,11 +42,12 @@ header button {
   background:#fff;
   padding:15px;
   border-radius:10px;
-  box-shadow:0 2px 5px rgba(0,0,0,0.1);
 }
 
-.stat-card h3 { margin:0; font-size:14px; color:#555 }
-.stat-card p { font-size:20px; font-weight:bold }
+.stat-card p {
+  font-size:20px;
+  font-weight:bold;
+}
 
 /* CARD */
 .card {
@@ -92,18 +93,9 @@ th { background:#f1f1f1 }
 .cancelled { background:#fee2e2 }
 
 /* SEARCH */
-.search {
-  margin-bottom:10px;
-}
 .search input {
   padding:8px;
   width:250px;
-}
-
-/* REFRESH */
-.refresh {
-  margin-left:10px;
-  cursor:pointer;
 }
 </style>
 </head>
@@ -111,81 +103,83 @@ th { background:#f1f1f1 }
 <body>
 
 <header>
-  <h2>ADMIN PANEL</h2>
+  <h2>🚀 ADMIN PANEL</h2>
   <div>
-    <span class="refresh" onclick="loadTransactions()">🔄 Refresh</span>
+    <button onclick="loadTransactions()">🔄 Refresh</button>
     <button onclick="logout()">Logout</button>
   </div>
 </header>
 
 <div class="container">
 
-  <!-- STATS -->
-  <div class="stats">
-    <div class="stat-card">
-      <h3>Total Transaksi</h3>
-      <p id="totalTx">0</p>
-    </div>
-    <div class="stat-card">
-      <h3>Pending</h3>
-      <p id="pendingTx">0</p>
-    </div>
-    <div class="stat-card">
-      <h3>Paid</h3>
-      <p id="paidTx">0</p>
-    </div>
-    <div class="stat-card">
-      <h3>Total Revenue</h3>
-      <p id="revenue">Rp 0</p>
-    </div>
+<!-- STATS -->
+<div class="stats">
+  <div class="stat-card">
+    <h4>Total</h4>
+    <p id="totalTx">0</p>
   </div>
+  <div class="stat-card">
+    <h4>Pending</h4>
+    <p id="pendingTx">0</p>
+  </div>
+  <div class="stat-card">
+    <h4>Paid</h4>
+    <p id="paidTx">0</p>
+  </div>
+  <div class="stat-card">
+    <h4>Revenue</h4>
+    <p id="revenue">Rp 0</p>
+  </div>
+</div>
 
-  <!-- INCOMING -->
-  <div class="card">
-    <h2>Transaksi Masuk</h2>
-    <div class="search">
-      <input type="text" id="searchPending" placeholder="Cari transaksi..." onkeyup="filterPending()">
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Order</th>
-          <th>Produk</th>
-          <th>Nama</th>
-          <th>Total</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="incomingBody"></tbody>
-    </table>
-  </div>
+<!-- PENDING -->
+<div class="card">
+  <h3>⚡ Transaksi Masuk</h3>
+  <input type="text" id="searchPending" placeholder="Cari..." onkeyup="filterPending()">
+  <table>
+    <thead>
+      <tr>
+        <th>Order</th>
+        <th>Produk</th>
+        <th>Nama</th>
+        <th>Alamat</th>
+        <th>Email</th>
+        <th>No HP</th>
+        <th>Total</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="incomingBody"></tbody>
+  </table>
+</div>
 
-  <!-- HISTORY -->
-  <div class="card">
-    <h2>📚 Riwayat</h2>
-    <div class="search">
-      <input type="text" id="searchHistory" placeholder="Cari history..." onkeyup="filterHistory()">
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Order</th>
-          <th>Produk</th>
-          <th>Nama</th>
-          <th>Total</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="historyBody"></tbody>
-    </table>
-  </div>
+<!-- HISTORY -->
+<div class="card">
+  <h3>📚 Riwayat</h3>
+  <input type="text" id="searchHistory" placeholder="Cari..." onkeyup="filterHistory()">
+  <table>
+    <thead>
+      <tr>
+        <th>Tanggal</th>
+        <th>Order</th>
+        <th>Produk</th>
+        <th>Nama</th>
+        <th>Alamat</th>
+        <th>Email</th>
+        <th>No HP</th>
+        <th>Total</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="historyBody"></tbody>
+  </table>
+</div>
 
 </div>
 
 <script>
 
 const API_URL = "https://payment-worker.namecheapel.workers.dev";
-
 let lastPending = 0;
 let pendingData = [];
 let historyData = [];
@@ -214,7 +208,21 @@ async function fetchAuth(url, options={}){
   return res;
 }
 
-// LOAD
+  function formatDate(dateStr){
+  if(!dateStr) return '-';
+
+  const d = new Date(dateStr);
+
+  return d.toLocaleString('id-ID', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+  
+// LOAD DATA
 async function loadTransactions(){
   try{
     const res = await fetchAuth(`${API_URL}/api/admin/transactions`);
@@ -249,17 +257,17 @@ function renderStats(all){
   document.getElementById("revenue").innerText = "Rp "+revenue.toLocaleString();
 }
 
-// INCOMING
+// RENDER PENDING
 function renderIncoming(data){
   const el = document.getElementById("incomingBody");
 
   if(data.length > lastPending){
-    new Audio("https://actions.google.com/sounds/v1/alarms/medium_bell_ringing_near.ogg").play();
+    new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
   }
   lastPending = data.length;
 
   if(!data.length){
-    el.innerHTML = `<tr><td colspan="5">Tidak ada transaksi</td></tr>`;
+    el.innerHTML = `<tr><td colspan="8">Tidak ada transaksi</td></tr>`;
     return;
   }
 
@@ -268,7 +276,10 @@ function renderIncoming(data){
       <td>${tr.order_id}</td>
       <td>${tr.product_name}</td>
       <td>${tr.customer_name}</td>
-      <td>Rp ${tr.amount.toLocaleString()}</td>
+      <td>${tr.shipping_address || '-'}</td>
+      <td>${tr.customer_email || '-'}</td>
+      <td>${tr.customer_phone || '-'}</td>
+      <td>Rp ${Number(tr.amount).toLocaleString()}</td>
       <td>
         <button class="btn btn-success" onclick="approve('${tr.id}')">Paid</button>
         <button class="btn btn-danger" onclick="reject('${tr.id}')">Unpaid</button>
@@ -277,25 +288,31 @@ function renderIncoming(data){
   `).join('');
 }
 
-// HISTORY
+// RENDER HISTORY
 function renderHistory(data){
   const el = document.getElementById("historyBody");
 
   if(!data.length){
-    el.innerHTML = `<tr><td colspan="5">Belum ada data</td></tr>`;
+    el.innerHTML = `<tr><td colspan="8">Belum ada data</td></tr>`;
     return;
   }
 
   el.innerHTML = data.map(tr=>`
-    <tr class="${tr.status}">
-      <td>${tr.order_id}</td>
-      <td>${tr.product_name}</td>
-      <td>${tr.customer_name}</td>
-      <td>Rp ${tr.amount.toLocaleString()}</td>
-      <td><span class="badge">${tr.payment_status}</span></td>
-    </tr>
-  `).join('');
-}
+  <tr class="pending">
+    <td>${tr.order_id}</td>
+    <td>${formatDate(tr.created_at || tr.order_date)}</td>
+    <td>${tr.product_name}</td>
+    <td>${tr.customer_name}</td>
+    <td>${tr.shipping_address || '-'}</td>
+    <td>${tr.customer_email || '-'}</td>
+    <td>${tr.customer_phone || '-'}</td>
+    <td>Rp ${Number(tr.amount).toLocaleString()}</td>
+    <td>
+      <button class="btn btn-success" onclick="approve('${tr.id}')">Paid</button>
+      <button class="btn btn-danger" onclick="reject('${tr.id}')">Unpaid</button>
+    </td>
+  </tr>
+`).join('');
 
 // FILTER
 function filterPending(){
