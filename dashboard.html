@@ -1,366 +1,705 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ADMIN PANEL</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Helm Market Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<style>
-body { font-family: Arial; background:#f5f5f5; margin:0 }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fb;
+            padding: 20px;
+        }
 
-header {
-  background:#111827;
-  color:#fff;
-  padding:15px 20px;
-  display:flex;
-  justify-content:space-between;
-}
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
 
-header button {
-  background:#ef4444;
-  border:none;
-  color:#fff;
-  padding:8px 14px;
-  cursor:pointer;
-  border-radius:6px;
-}
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-.container { padding:20px }
+        .header h1 {
+            font-size: 1.8rem;
+        }
 
-.stats {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:15px;
-  margin-bottom:20px;
-}
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
 
-.stat-card {
-  background:#fff;
-  padding:15px;
-  border-radius:10px;
-}
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
 
-.stat-card p {
-  font-size:20px;
-  font-weight:bold;
-}
+        /* Stats Cards */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
 
-.card {
-  background:#fff;
-  padding:20px;
-  border-radius:10px;
-  margin-bottom:20px;
-}
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
 
-table {
-  width:100%;
-  border-collapse:collapse;
-}
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
 
-th, td {
-  padding:10px;
-  border-bottom:1px solid #eee;
-}
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
 
-th { background:#f1f1f1 }
+        .stat-card.revenue .number {
+            color: #10b981;
+        }
 
-.btn {
-  padding:6px 10px;
-  border:none;
-  cursor:pointer;
-  border-radius:5px;
-}
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
 
-.btn-success { background:#10b981; color:#fff }
-.btn-danger { background:#ef4444; color:#fff }
+        .tab {
+            padding: 12px 30px;
+            background: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
 
-.pending { background:#fef3c7 }
-.completed { background:#d1fae5 }
-.cancelled { background:#fee2e2 }
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
 
-input {
-  padding:8px;
-  width:250px;
-  margin-bottom:10px;
-}
-</style>
+        /* Panels */
+        .panel {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* Search */
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        /* Tables */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8f9fc;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            color: #555;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-completed {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .status-cancelled {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 2px;
+            transition: all 0.2s;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            border-left: 4px solid #10b981;
+        }
+
+        .notification-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .notification-message {
+            color: #666;
+            font-size: 14px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Audio permission */
+        .audio-permission {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            z-index: 1000;
+        }
+    </style>
 </head>
-
 <body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Admin Panel - Helm Market Pro</h1>
+            <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+        </div>
 
-<header>
-  <h2>ADMIN PANEL</h2>
-  <div>
-    <button onclick="loadTransactions()">🔄 Refresh</button>
-    <button onclick="logout()">Logout</button>
-  </div>
-</header>
+        <div class="stats">
+            <div class="stat-card">
+                <h3>📦 Total Transaksi</h3>
+                <div class="number" id="totalTx">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>⏳ Pending</h3>
+                <div class="number" id="pendingTx">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>✅ Selesai</h3>
+                <div class="number" id="paidTx">0</div>
+            </div>
+            <div class="stat-card revenue">
+                <h3>💰 Pendapatan</h3>
+                <div class="number" id="revenue">Rp 0</div>
+            </div>
+        </div>
 
-<div class="container">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('incoming')">📥 Pesanan Masuk</button>
+            <button class="tab" onclick="switchTab('history')">📜 Riwayat Transaksi</button>
+        </div>
 
-<div class="stats">
-  <div class="stat-card">
-    <h4>Total</h4>
-    <p id="totalTx">0</p>
-  </div>
-  <div class="stat-card">
-    <h4>Pending</h4>
-    <p id="pendingTx">0</p>
-  </div>
-  <div class="stat-card">
-    <h4>Paid</h4>
-    <p id="paidTx">0</p>
-  </div>
-  <div class="stat-card">
-    <h4>Revenue</h4>
-    <p id="revenue">Rp 0</p>
-  </div>
-</div>
+        <div id="incomingPanel" class="panel active">
+            <div class="search-box">
+                <input type="text" id="searchPending" placeholder="🔍 Cari produk atau pelanggan..." onkeyup="filterPending()">
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Produk</th>
+                            <th>Pelanggan</th>
+                            <th>Alamat</th>
+                            <th>Email</th>
+                            <th>Telepon</th>
+                            <th>Total</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="incomingBody">
+                        <tr><td colspan="8">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-<!-- PENDING -->
-<div class="card">
-  <h3>Transaksi Masuk</h3>
-  <input type="text" id="searchPending" placeholder="Cari..." onkeyup="filterPending()">
-  <table>
-    <thead>
-      <tr>
-        <th>Order</th>
-        <th>Produk</th>
-        <th>Nama</th>
-        <th>Alamat</th>
-        <th>Email</th>
-        <th>No HP</th>
-        <th>Total</th>
-        <th>Aksi</th>
-      </tr>
-    </thead>
-    <tbody id="incomingBody"></tbody>
-  </table>
-</div>
+        <div id="historyPanel" class="panel">
+            <div class="search-box">
+                <input type="text" id="searchHistory" placeholder="🔍 Cari produk atau pelanggan..." onkeyup="filterHistory()">
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Order ID</th>
+                            <th>Produk</th>
+                            <th>Pelanggan</th>
+                            <th>Alamat</th>
+                            <th>Email</th>
+                            <th>Telepon</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr><td colspan="9">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-<!-- HISTORY -->
-<div class="card">
-  <h3>📚 Riwayat</h3>
-  <input type="text" id="searchHistory" placeholder="Cari..." onkeyup="filterHistory()">
-  <table>
-    <thead>
-      <tr>
-        <th>Tanggal</th>
-        <th>Order</th>
-        <th>Produk</th>
-        <th>Nama</th>
-        <th>Alamat</th>
-        <th>Email</th>
-        <th>No HP</th>
-        <th>Total</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="historyBody"></tbody>
-  </table>
-</div>
+    <div class="audio-permission" onclick="enableSound()">
+        🔔 Klik untuk mengaktifkan suara notifikasi
+    </div>
 
-</div>
+    <script>
+        const API_URL = "https://payment-worker.namecheapel.workers.dev";
+        let pendingData = [];
+        let historyData = [];
+        let knownPendingIds = new Set();
+        let soundEnabled = false;
+        let audioContext = null;
 
-<script>
-const API_URL = "https://payment-worker.namecheapel.workers.dev";
-let lastPending = 0;
-let pendingData = [];
-let historyData = [];
+        const token = localStorage.getItem("adminToken");
+        if (!token) {
+            location.href = "index.html";
+        }
 
-const token = localStorage.getItem("adminToken");
-if(!token){
-  location.href="index.html";
-}
+        // ========== FUNGSI TANGGAL YANG BENAR ==========
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            
+            try {
+                // Parse tanggal dengan benar
+                let date;
+                if (typeof dateStr === 'string') {
+                    // Coba parse ISO string
+                    date = new Date(dateStr);
+                    
+                    // Jika invalid, coba parse manual
+                    if (isNaN(date.getTime())) {
+                        // Format: "2024-01-15T10:30:00.000Z" atau "2024-01-15 10:30:00"
+                        const parts = dateStr.replace('T', ' ').split(/[- :]/);
+                        if (parts.length >= 6) {
+                            date = new Date(Date.UTC(
+                                parseInt(parts[0]),
+                                parseInt(parts[1]) - 1,
+                                parseInt(parts[2]),
+                                parseInt(parts[3]),
+                                parseInt(parts[4]),
+                                parseInt(parts[5])
+                            ));
+                        }
+                    }
+                } else if (typeof dateStr === 'number') {
+                    date = new Date(dateStr);
+                } else {
+                    return '-';
+                }
+                
+                // Validasi apakah date valid
+                if (isNaN(date.getTime())) {
+                    return '-';
+                }
+                
+                // Format ke WIB (Asia/Jakarta = UTC+7)
+                const options = {
+                    timeZone: 'Asia/Jakarta',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                };
+                
+                const formatter = new Intl.DateTimeFormat('id-ID', options);
+                const formatted = formatter.format(date);
+                
+                // Ubah format dari "15/01/2024 10.30.45" menjadi "15-01-2024 10:30:45"
+                return formatted.replace(/\//g, '-').replace(/\./g, ':');
+                
+            } catch (error) {
+                console.error('Error formatting date:', dateStr, error);
+                return '-';
+            }
+        }
 
-async function fetchAuth(url, options={}){
-  const res = await fetch(url,{
-    ...options,
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":"Bearer "+token
-    }
-  });
+        // Fungsi alternatif untuk format tanggal yang lebih sederhana
+        function formatDateSimple(dateStr) {
+            if (!dateStr) return '-';
+            
+            try {
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return '-';
+                
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                
+                return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+            } catch {
+                return '-';
+            }
+        }
 
-  if(res.status===401){
-    localStorage.removeItem("adminToken");
-    location.href="index.html";
-  }
+        async function fetchAuth(url, options = {}) {
+            const res = await fetch(url, {
+                ...options,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                }
+            });
 
-  return res;
-}
+            if (res.status === 401) {
+                localStorage.removeItem("adminToken");
+                location.href = "index.html";
+            }
 
-function formatDate(dateStr){
-  if(!dateStr) return '-';
+            return res;
+        }
 
-  const d = new Date(dateStr);
+        async function loadTransactions() {
+            try {
+                const res = await fetchAuth(`${API_URL}/api/admin/transactions`);
+                const data = await res.json();
 
-  return new Intl.DateTimeFormat('id-ID', {
-    timeZone: 'Asia/Jakarta',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  }).format(d);
-}
+                if (data.success) {
+                    const all = data.transactions || [];
 
-// LOAD
-async function loadTransactions(){
-  try{
-    const res = await fetchAuth(`${API_URL}/api/admin/transactions`);
-    const data = await res.json();
+                    pendingData = all.filter(x => x.status === "pending");
+                    historyData = all.filter(x => x.status !== "pending");
 
-    if(data.success){
-      const all = data.transactions || [];
+                    renderStats(all);
+                    renderIncoming(pendingData);
+                    renderHistory(historyData);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
 
-      pendingData = all.filter(x=>x.status==="pending");
-      historyData = all.filter(x=>x.status!=="pending");
+        function renderStats(all) {
+            document.getElementById("totalTx").innerText = all.length;
+            document.getElementById("pendingTx").innerText = pendingData.length;
+            document.getElementById("paidTx").innerText = all.filter(x => x.payment_status === "paid").length;
 
-      renderStats(all);
-      renderIncoming(pendingData);
-      renderHistory(historyData);
-    }
+            let revenue = all
+                .filter(x => x.payment_status === "paid")
+                .reduce((sum, x) => sum + Number(x.amount || 0), 0);
 
-  }catch(err){
-    console.error(err);
-  }
-}
+            document.getElementById("revenue").innerText = "Rp " + revenue.toLocaleString();
+        }
 
-// STATS
-function renderStats(all){
-  document.getElementById("totalTx").innerText = all.length;
-  document.getElementById("pendingTx").innerText = pendingData.length;
-  document.getElementById("paidTx").innerText = all.filter(x=>x.payment_status==="paid").length;
+        let isFirstLoad = true;
 
-  let revenue = all
-    .filter(x=>x.payment_status==="paid")
-    .reduce((sum,x)=>sum + Number(x.amount),0);
+        function renderIncoming(data) {
+            const el = document.getElementById("incomingBody");
 
-  document.getElementById("revenue").innerText = "Rp "+revenue.toLocaleString();
-}
+            const currentIds = new Set(data.map(tr => tr.id));
+            
+            // Cek transaksi baru
+            const newTransactions = [];
+            if (!isFirstLoad) {
+                data.forEach(tr => {
+                    if (!knownPendingIds.has(tr.id)) {
+                        newTransactions.push(tr);
+                    }
+                });
+            }
 
-// PENDING
-function renderIncoming(data){
-  const el = document.getElementById("incomingBody");
+            // Notifikasi suara untuk transaksi baru
+            if (newTransactions.length > 0 && soundEnabled && !isFirstLoad) {
+                playNotificationSound();
+                
+                newTransactions.forEach(tr => {
+                    showNotification(
+                        "🛒 Transaksi Baru!",
+                        `${tr.customer_name} - ${tr.product_name} (Rp ${Number(tr.amount).toLocaleString()})`
+                    );
+                });
+            }
+            
+            isFirstLoad = false;
+            knownPendingIds = currentIds;
 
-  // Ambil ID transaksi sekarang
-  const currentIds = new Set(data.map(tr => tr.id));
+            if (!data.length) {
+                el.innerHTML = `<tr><td colspan="8" style="text-align:center">✨ Tidak ada transaksi pending</td></tr>`;
+                return;
+            }
 
-  // Cek apakah ada ID baru (yang belum pernah ada)
-  let hasNew = false;
-  let firstLoad = true;
+            el.innerHTML = data.map(tr => `
+                <tr class="pending">
+                    <td><strong>${tr.order_id || '-'}</strong></td>
+                    <td>${tr.product_name || '-'}</td>
+                    <td>${tr.customer_name || '-'}</td>
+                    <td>${tr.shipping_address || '-'}</td>
+                    <td>${tr.customer_email || '-'}</td>
+                    <td>${tr.customer_phone || '-'}</td>
+                    <td><strong>Rp ${Number(tr.amount || 0).toLocaleString()}</strong></td>
+                    <td>
+                        <button class="btn btn-success" onclick="approve('${tr.id}')">✅ Approve</button>
+                        <button class="btn btn-danger" onclick="reject('${tr.id}')">❌ Reject</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
 
-  data.forEach(tr => {
-    if(!knownPendingIds.has(tr.id)){
-      newTransactions.push(tr);
-    }
-  });
+        function renderHistory(data) {
+            const el = document.getElementById("historyBody");
 
-  // 🔊 Bunyi hanya kalau ada transaksi BARU
-  if(newTransactions.length > 0 && !firstLoad){
-    new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
+            if (!data.length) {
+                el.innerHTML = `<tr><td colspan="9" style="text-align:center">📭 Belum ada riwayat transaksi</td></tr>`;
+                return;
+            }
 
-    newTransactions.forEach(tr=>{
-      showNotif(
-        "🛒 Transaksi Baru",
-        `${tr.customer_name} beli ${tr.product_name} (Rp ${Number(tr.amount).toLocaleString()})`
-      );
-    });
-  }
-firstLoad = false;
-  knownPendingIds = currentIds;
+            el.innerHTML = data.map(tr => {
+                // Gunakan tanggal yang benar
+                const tanggal = formatDate(tr.created_at || tr.order_date || tr.tanggal);
+                
+                let statusClass = '';
+                let statusText = '';
+                
+                if (tr.payment_status === 'paid' || tr.status === 'completed') {
+                    statusClass = 'status-completed';
+                    statusText = '✅ Selesai';
+                } else if (tr.payment_status === 'unpaid' || tr.status === 'cancelled') {
+                    statusClass = 'status-cancelled';
+                    statusText = '❌ Ditolak';
+                } else {
+                    statusClass = 'status-pending';
+                    statusText = '⏳ Pending';
+                }
+                
+                return `
+                    <tr>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>${tanggal}</td>
+                        <td>${tr.order_id || '-'}</td>
+                        <td>${tr.product_name || '-'}</td>
+                        <td>${tr.customer_name || '-'}</td>
+                        <td>${tr.shipping_address || '-'}</td>
+                        <td>${tr.customer_email || '-'}</td>
+                        <td>${tr.customer_phone || '-'}</td>
+                        <td><strong>Rp ${Number(tr.amount || 0).toLocaleString()}</strong></td>
+                    </tr>
+                `;
+            }).join('');
+        }
 
-  // render table
-  if(!data.length){
-    el.innerHTML = `<tr><td colspan="8">Tidak ada transaksi</td></tr>`;
-    return;
-  }
+        function filterPending() {
+            const q = document.getElementById("searchPending").value.toLowerCase();
+            const filtered = pendingData.filter(x =>
+                (x.product_name || '').toLowerCase().includes(q) ||
+                (x.customer_name || '').toLowerCase().includes(q)
+            );
+            renderIncoming(filtered);
+        }
 
-  el.innerHTML = data.map(tr=>`
-    <tr class="pending">
-      <td>${tr.order_id}</td>
-      <td>${tr.product_name}</td>
-      <td>${tr.customer_name}</td>
-      <td>${tr.shipping_address || '-'}</td>
-      <td>${tr.customer_email || '-'}</td>
-      <td>${tr.customer_phone || '-'}</td>
-      <td>Rp ${Number(tr.amount).toLocaleString()}</td>
-      <td>
-        <button class="btn btn-success" onclick="approve('${tr.id}')">Paid</button>
-        <button class="btn btn-danger" onclick="reject('${tr.id}')">Unpaid</button>
-      </td>
-    </tr>
-  `).join('');
-}
+        function filterHistory() {
+            const q = document.getElementById("searchHistory").value.toLowerCase();
+            const filtered = historyData.filter(x =>
+                (x.product_name || '').toLowerCase().includes(q) ||
+                (x.customer_name || '').toLowerCase().includes(q)
+            );
+            renderHistory(filtered);
+        }
 
-// HISTORY
-function renderHistory(data){
-  const el = document.getElementById("historyBody");
+        async function updateStatus(id, status, payment) {
+            try {
+                const res = await fetchAuth(`${API_URL}/api/admin/transactions/${id}/status`, {
+                    method: "PUT",
+                    body: JSON.stringify({ status, payment_status: payment })
+                });
+                
+                if (res.ok) {
+                    await loadTransactions();
+                    showNotification('✅ Status Diupdate', `Transaksi ${id} telah diupdate`);
+                } else {
+                    throw new Error('Gagal update status');
+                }
+            } catch (err) {
+                console.error(err);
+                alert("❌ Gagal mengupdate status. Coba lagi nanti.");
+            }
+        }
 
-  if(!data.length){
-    el.innerHTML = `<tr><td colspan="9">Belum ada data</td></tr>`;
-    return;
-  }
+        function approve(id) { 
+            updateStatus(id, "completed", "paid"); 
+        }
+        
+        function reject(id) { 
+            updateStatus(id, "cancelled", "unpaid"); 
+        }
 
-  el.innerHTML = data.map(tr=>`
-    <tr class="${tr.status}">
-      <td>${formatDate(tr.created_at || tr.order_date)}</td>
-      <td>${tr.order_id}</td>
-      <td>${tr.product_name}</td>
-      <td>${tr.customer_name}</td>
-      <td>${tr.shipping_address || '-'}</td>
-      <td>${tr.customer_email || '-'}</td>
-      <td>${tr.customer_phone || '-'}</td>
-      <td>Rp ${Number(tr.amount).toLocaleString()}</td>
-      <td>${tr.payment_status || tr.status}</td>
-    </tr>
-  `).join('');
-}
+        function switchTab(tab) {
+            const incomingPanel = document.getElementById('incomingPanel');
+            const historyPanel = document.getElementById('historyPanel');
+            const tabs = document.querySelectorAll('.tab');
+            
+            if (tab === 'incoming') {
+                incomingPanel.classList.add('active');
+                historyPanel.classList.remove('active');
+                tabs[0].classList.add('active');
+                tabs[1].classList.remove('active');
+            } else {
+                incomingPanel.classList.remove('active');
+                historyPanel.classList.add('active');
+                tabs[0].classList.remove('active');
+                tabs[1].classList.add('active');
+                renderHistory(historyData);
+            }
+        }
 
-// FILTER
-function filterPending(){
-  const q = document.getElementById("searchPending").value.toLowerCase();
-  renderIncoming(pendingData.filter(x =>
-    x.product_name.toLowerCase().includes(q) ||
-    x.customer_name.toLowerCase().includes(q)
-  ));
-}
+        function playNotificationSound() {
+            try {
+                const audio = new Audio('data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==');
+                audio.volume = 0.5;
+                audio.play().catch(e => console.log('Audio play failed:', e));
+            } catch (e) {
+                console.log('Sound not supported');
+            }
+        }
 
-function filterHistory(){
-  const q = document.getElementById("searchHistory").value.toLowerCase();
-  renderHistory(historyData.filter(x =>
-    x.product_name.toLowerCase().includes(q) ||
-    x.customer_name.toLowerCase().includes(q)
-  ));
-}
+        function showNotification(title, message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `
+                <div class="notification-title">${title}</div>
+                <div class="notification-message">${message}</div>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
 
-// UPDATE STATUS
-async function updateStatus(id,status,payment){
-  try{
-    await fetchAuth(`${API_URL}/api/admin/transactions/${id}/status`,{
-      method:"PUT",
-      body:JSON.stringify({status,payment_status:payment})
-    });
-    loadTransactions();
-  }catch{
-    alert("Server error");
-  }
-}
+        function enableSound() {
+            soundEnabled = true;
+            showNotification('🔊 Suara Diaktifkan', 'Notifikasi suara akan berbunyi untuk transaksi baru');
+            const btn = document.querySelector('.audio-permission');
+            btn.style.display = 'none';
+        }
 
-function approve(id){ updateStatus(id,"completed","paid"); }
-function reject(id){ updateStatus(id,"cancelled","unpaid"); }
+        function logout() {
+            if (confirm('Yakin ingin logout?')) {
+                localStorage.removeItem("adminToken");
+                location.href = "index.html";
+            }
+        }
 
-// AUTO REFRESH
-setInterval(loadTransactions, 5000);
-loadTransactions();
-
-function logout(){
-  localStorage.removeItem("adminToken");
-  location.href="index.html";
-}
-</script>
-
+        // Auto refresh setiap 5 detik
+        setInterval(loadTransactions, 5000);
+        
+        // Load pertama kali
+        loadTransactions();
+    </script>
 </body>
 </html>
